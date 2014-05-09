@@ -59,6 +59,12 @@ public final class UsbId {
     public static final int VENDOR_PROLIFIC = 0x067b;
     public static final int PROLIFIC_PL2303 = 0x2303;
 
+    // https://github.com/ksksue/Android-USB-Serial-Monitor-Lite/blob/master/AndroidUSBSerialMonitorLite/res/xml/device_filter.xml
+    // http://www.element14.com/community/blogs/mirandasoft/2013/06/19/frdm-kl25z-32-bit-arm-programming-using-mbed-online-compiler
+    public static final int VENDOR_NXP = 0x0d28; // NXP LPC1768 (mbed FRDM KL25Z)
+    public static final int VENDOR_PEMS = 0x1357; // P&E Microcomputer Systems
+    public static final int VENDOR_FREESCALE = 0x15a2; // Freescale Semiconductor, Inc
+
     private UsbId() {
         throw new IllegalAccessError("Non-instantiable class.");
     }
