@@ -60,6 +60,7 @@ abstract class CommonUsbSerialDriver implements UsbSerialDriver {
      *
      * @return the device
      */
+    @Override
     public final UsbDevice getDevice() {
         return mDevice;
     }

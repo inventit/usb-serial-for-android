@@ -20,6 +20,8 @@
 
 package com.hoho.android.usbserial.driver;
 
+import android.hardware.usb.UsbDevice;
+
 import java.io.IOException;
 
 /**
@@ -207,4 +209,10 @@ public interface UsbSerialDriver {
      */
     public boolean purgeHwBuffers(boolean flushRX, boolean flushTX) throws IOException;
 
+    /**
+     * A UsbDevice associated with the UsbSerialDriver
+     * 
+     * @return
+     */
+    UsbDevice getDevice();
 }
