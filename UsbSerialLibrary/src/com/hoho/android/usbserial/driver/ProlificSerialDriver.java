@@ -36,8 +36,6 @@ import android.util.Log;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 public class ProlificSerialDriver extends CommonUsbSerialDriver {
     private static final int USB_READ_TIMEOUT_MILLIS = 1000;
@@ -513,10 +511,16 @@ public class ProlificSerialDriver extends CommonUsbSerialDriver {
         return true;
     }
 
-    public static Map<Integer, int[]> getSupportedDevices() {
-        final Map<Integer, int[]> supportedDevices = new LinkedHashMap<Integer, int[]>();
-        supportedDevices.put(Integer.valueOf(UsbId.VENDOR_PROLIFIC),
-                new int[] { UsbId.PROLIFIC_PL2303, });
-        return supportedDevices;
+    public static boolean isSupportedDevice(UsbDevice usbDevice) {
+        final int vendorId = usbDevice.getVendorId();
+        final int productId = usbDevice.getProductId();
+        switch (vendorId) {
+            case UsbId.VENDOR_PROLIFIC:
+                // UsbId.PROLIFIC_PL2303
+                return true;
+            default:
+                return false;
+        }
     }
+
 }

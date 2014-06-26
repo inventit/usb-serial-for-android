@@ -8,8 +8,6 @@ import android.hardware.usb.UsbInterface;
 import android.util.Log;
 
 import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * USB CDC/ACM serial driver implementation.
@@ -44,15 +42,38 @@ public class CdcAcmSerialDriver extends CommonUsbSerialDriver {
     public CdcAcmSerialDriver(UsbDevice device, UsbDeviceConnection connection) {
         super(device, connection);
     }
+    
+    protected UsbInterface getUsbInterface(int ifClass) {
+        final int size = mDevice.getInterfaceCount();
+        for (int i = 0; i < size; i++) {
+            if (mDevice.getInterface(i).getInterfaceClass() == ifClass) {
+                return mDevice.getInterface(i);
+            }
+        }
+        return null;
+    }
+    
+    protected UsbEndpoint getUsbEndpoint(int direction) {
+        final int size = mDataInterface.getEndpointCount();
+        for (int i = 0; i < size; i++) {
+            if (mDataInterface.getEndpoint(i).getDirection() == direction) {
+                return mDataInterface.getEndpoint(i);
+            }
+        }
+        return null;
+    }
 
     @Override
     public void open() throws IOException {
         Log.d(TAG, "claiming interfaces, count=" + mDevice.getInterfaceCount());
 
         Log.d(TAG, "Claiming control interface.");
-        mControlInterface = mDevice.getInterface(0);
+        // class should be USB_CLASS_COMM (0x02)
+        mControlInterface = getUsbInterface(UsbConstants.USB_CLASS_COMM);
         Log.d(TAG, "Control iface=" + mControlInterface);
-        // class should be USB_CLASS_COMM
+        if (mControlInterface == null) {
+            throw new IOException("COMM interface class is missing.");
+        }
 
         if (!mConnection.claimInterface(mControlInterface, true)) {
             throw new IOException("Could not claim control interface.");
@@ -61,17 +82,20 @@ public class CdcAcmSerialDriver extends CommonUsbSerialDriver {
         Log.d(TAG, "Control endpoint direction: " + mControlEndpoint.getDirection());
 
         Log.d(TAG, "Claiming data interface.");
-        mDataInterface = mDevice.getInterface(1);
+        // class should be USB_CLASS_CDC_DATA (0x10)
+        mDataInterface = getUsbInterface(UsbConstants.USB_CLASS_CDC_DATA);
         Log.d(TAG, "data iface=" + mDataInterface);
-        // class should be USB_CLASS_CDC_DATA
+        if (mDataInterface == null) {
+            throw new IOException("CDC_DATA interface class is missing.");
+        }
 
         if (!mConnection.claimInterface(mDataInterface, true)) {
             throw new IOException("Could not claim data interface.");
         }
-        mReadEndpoint = mDataInterface.getEndpoint(1);
-        Log.d(TAG, "Read endpoint direction: " + mReadEndpoint.getDirection());
-        mWriteEndpoint = mDataInterface.getEndpoint(0);
-        Log.d(TAG, "Write endpoint direction: " + mWriteEndpoint.getDirection());
+        mReadEndpoint = getUsbEndpoint(UsbConstants.USB_DIR_IN);
+        Log.d(TAG, "Read endpoint: " + mReadEndpoint);
+        mWriteEndpoint = getUsbEndpoint(UsbConstants.USB_DIR_OUT);
+        Log.d(TAG, "Write endpoint: " + mWriteEndpoint);
     }
 
     private int sendAcmControlMessage(int request, int value, byte[] buf) {
@@ -216,33 +240,19 @@ public class CdcAcmSerialDriver extends CommonUsbSerialDriver {
         sendAcmControlMessage(SET_CONTROL_LINE_STATE, value, null);
     }
 
-    public static Map<Integer, int[]> getSupportedDevices() {
-        final Map<Integer, int[]> supportedDevices = new LinkedHashMap<Integer, int[]>();
-        supportedDevices.put(Integer.valueOf(UsbId.VENDOR_ARDUINO),
-                new int[] {
-                        UsbId.ARDUINO_UNO,
-                        UsbId.ARDUINO_UNO_R3,
-                        UsbId.ARDUINO_MEGA_2560,
-                        UsbId.ARDUINO_MEGA_2560_R3,
-                        UsbId.ARDUINO_SERIAL_ADAPTER,
-                        UsbId.ARDUINO_SERIAL_ADAPTER_R3,
-                        UsbId.ARDUINO_MEGA_ADK,
-                        UsbId.ARDUINO_MEGA_ADK_R3,
-                        UsbId.ARDUINO_LEONARDO,
-                });
-        supportedDevices.put(Integer.valueOf(UsbId.VENDOR_VAN_OOIJEN_TECH),
-                new int[] {
-                    UsbId.VAN_OOIJEN_TECH_TEENSYDUINO_SERIAL,
-                });
-        supportedDevices.put(Integer.valueOf(UsbId.VENDOR_ATMEL),
-                new int[] {
-                    UsbId.ATMEL_LUFA_CDC_DEMO_APP,
-                });
-        supportedDevices.put(Integer.valueOf(UsbId.VENDOR_LEAFLABS),
-                new int[] {
-                    UsbId.LEAFLABS_MAPLE,
-                });
-        return supportedDevices;
+    public static boolean isSupportedDevice(UsbDevice usbDevice) {
+        final int vendorId = usbDevice.getVendorId();
+        final int productId = usbDevice.getProductId();
+        switch (vendorId) {
+            case UsbId.VENDOR_ARDUINO:
+            case UsbId.VENDOR_VAN_OOIJEN_TECH:
+            case UsbId.VENDOR_ATMEL:
+            case UsbId.VENDOR_LEAFLABS:
+            case UsbId.VENDOR_NXP:
+                // adds filters with productIds if necessary
+                return true;
+            default:
+                return false;
+        }
     }
-
 }

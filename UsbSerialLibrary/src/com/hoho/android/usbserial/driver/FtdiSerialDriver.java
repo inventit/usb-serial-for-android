@@ -31,8 +31,6 @@ import com.hoho.android.usbserial.util.HexDump;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * A {@link CommonUsbSerialDriver} implementation for a variety of FTDI devices
@@ -535,14 +533,17 @@ public class FtdiSerialDriver extends CommonUsbSerialDriver {
         return true;
     }
 
-    public static Map<Integer, int[]> getSupportedDevices() {
-        final Map<Integer, int[]> supportedDevices = new LinkedHashMap<Integer, int[]>();
-        supportedDevices.put(Integer.valueOf(UsbId.VENDOR_FTDI),
-                new int[] {
-                    UsbId.FTDI_FT232R,
-                    UsbId.FTDI_FT231X,                    
-                });
-        return supportedDevices;
+    public static boolean isSupportedDevice(UsbDevice usbDevice) {
+        final int vendorId = usbDevice.getVendorId();
+        final int productId = usbDevice.getProductId();
+        switch (vendorId) {
+            case UsbId.VENDOR_FTDI:
+                // FTDI_FT232R
+                // FTDI_FT231X
+                return true;
+            default:
+                return false;
+        }
     }
 
 }

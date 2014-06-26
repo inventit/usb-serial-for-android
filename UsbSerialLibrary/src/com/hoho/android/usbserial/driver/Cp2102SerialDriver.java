@@ -1,8 +1,6 @@
 package com.hoho.android.usbserial.driver;
 
 import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 import android.hardware.usb.UsbConstants;
 import android.hardware.usb.UsbDevice;
@@ -277,15 +275,21 @@ public class Cp2102SerialDriver extends CommonUsbSerialDriver {
     @Override
     public void setRTS(boolean value) throws IOException {
     }
-    
-    public static Map<Integer, int[]> getSupportedDevices() {
-        final Map<Integer, int[]> supportedDevices = new LinkedHashMap<Integer, int[]>();
-        supportedDevices.put(Integer.valueOf(UsbId.VENDOR_SILAB),
-                new int[] {
-                        UsbId.SILAB_CP2102
-                });
-        return supportedDevices;
-    }
 
+    public static boolean isSupportedDevice(UsbDevice usbDevice) {
+        final int vendorId = usbDevice.getVendorId();
+        final int productId = usbDevice.getProductId();
+        switch (vendorId) {
+            case UsbId.VENDOR_SILAB:
+                switch (productId) {
+                    case UsbId.SILAB_CP2102:
+                        return true;
+                    default:
+                        return false;
+                }
+            default:
+                return false;
+        }
+    }
 
 }

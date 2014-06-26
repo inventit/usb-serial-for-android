@@ -23,11 +23,11 @@ package com.hoho.android.usbserial.driver;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Helper class which finds compatible {@link UsbDevice}s and creates
@@ -57,11 +57,13 @@ public enum UsbSerialProber {
     FTDI_SERIAL {
         @Override
         public List<UsbSerialDriver> probe(final UsbManager manager, final UsbDevice usbDevice) {
-            if (!testIfSupported(usbDevice, FtdiSerialDriver.getSupportedDevices())) {
+            if (!FtdiSerialDriver.isSupportedDevice(usbDevice)) {
+                Log.i("FTDI", "Unsupported device => " + usbDevice.getDeviceName());
                 return Collections.emptyList();
             }
             final UsbDeviceConnection connection = manager.openDevice(usbDevice);
             if (connection == null) {
+                Log.w("FTDI", "Couldn't open the usb device => " + usbDevice.getDeviceName());
                 return Collections.emptyList();
             }
             final UsbSerialDriver driver = new FtdiSerialDriver(usbDevice, connection);
@@ -72,11 +74,13 @@ public enum UsbSerialProber {
     CDC_ACM_SERIAL {
         @Override
         public List<UsbSerialDriver> probe(UsbManager manager, UsbDevice usbDevice) {
-            if (!testIfSupported(usbDevice, CdcAcmSerialDriver.getSupportedDevices())) {
-               return Collections.emptyList();
+            if (!CdcAcmSerialDriver.isSupportedDevice(usbDevice)) {
+                Log.i("CDC_ACM", "Unsupported device => " + usbDevice.getDeviceName());
+                return Collections.emptyList();
             }
             final UsbDeviceConnection connection = manager.openDevice(usbDevice);
             if (connection == null) {
+                Log.w("CDC_ACM", "Couldn't open the usb device => " + usbDevice.getDeviceName());
                 return Collections.emptyList();
             }
             final UsbSerialDriver driver = new CdcAcmSerialDriver(usbDevice, connection);
@@ -87,11 +91,13 @@ public enum UsbSerialProber {
     SILAB_SERIAL {
         @Override
         public List<UsbSerialDriver> probe(final UsbManager manager, final UsbDevice usbDevice) {
-            if (!testIfSupported(usbDevice, Cp2102SerialDriver.getSupportedDevices())) {
+            if (!Cp2102SerialDriver.isSupportedDevice(usbDevice)) {
+                Log.i("CP2102", "Unsupported device => " + usbDevice.getDeviceName());
                 return Collections.emptyList();
             }
             final UsbDeviceConnection connection = manager.openDevice(usbDevice);
             if (connection == null) {
+                Log.w("CP2102", "Couldn't open the usb device => " + usbDevice.getDeviceName());
                 return Collections.emptyList();
             }
             final UsbSerialDriver driver = new Cp2102SerialDriver(usbDevice, connection);
@@ -102,11 +108,13 @@ public enum UsbSerialProber {
     PROLIFIC_SERIAL {
         @Override
         public List<UsbSerialDriver> probe(final UsbManager manager, final UsbDevice usbDevice) {
-            if (!testIfSupported(usbDevice, ProlificSerialDriver.getSupportedDevices())) {
+            if (!ProlificSerialDriver.isSupportedDevice(usbDevice)) {
+                Log.i("PROLIFIC", "Unsupported device => " + usbDevice.getDeviceName());
                 return Collections.emptyList();
             }
             final UsbDeviceConnection connection = manager.openDevice(usbDevice);
             if (connection == null) {
+                Log.w("PROLIFIC", "Couldn't open the usb device => " + usbDevice.getDeviceName());
                 return Collections.emptyList();
             }
             final UsbSerialDriver driver = new ProlificSerialDriver(usbDevice, connection);
@@ -217,31 +225,6 @@ public enum UsbSerialProber {
             return probedDevices.get(0);
         }
         return null;
-    }
-
-    /**
-     * Returns {@code true} if the given device is found in the driver's
-     * vendor/product map.
-     *
-     * @param usbDevice the device to test
-     * @param supportedDevices map of vendor IDs to product ID(s)
-     * @return {@code true} if supported
-     */
-    private static boolean testIfSupported(final UsbDevice usbDevice,
-            final Map<Integer, int[]> supportedDevices) {
-        final int[] supportedProducts = supportedDevices.get(
-                Integer.valueOf(usbDevice.getVendorId()));
-        if (supportedProducts == null) {
-            return false;
-        }
-
-        final int productId = usbDevice.getProductId();
-        for (int supportedProductId : supportedProducts) {
-            if (productId == supportedProductId) {
-                return true;
-            }
-        }
-        return false;
     }
 
 }
