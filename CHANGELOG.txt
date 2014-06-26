@@ -1,4 +1,8 @@
 Current Version (in development)
+  * TBW
+
+v0.1.0-5c8a655-inventit-0.1.0 (forked version, 2014-06-26)
+  * Mbed NXP LPC1768 support (tested with FRDM KL25Z)
   * New driver: CP2102 (thanks Ducky).
   * New prober support: LUFA Virtual Serial, Leaflabs Maple, Teensyduino.
   * New driver methods: getCD, getCTS, getDSR, getDTR, setDTR, getRI, getRTS,
